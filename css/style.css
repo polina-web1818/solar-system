@@ -149,10 +149,161 @@ body::after {
   50% { transform: translateY(8px); }
 }
 
-/* ===== Будущие разделы ===== */
+/* ===== Разделы планет ===== */
 .journey {
-  min-height: 40vh;
   background: var(--navy-deep);
+}
+
+.planet-section {
+  --accent: var(--orange); /* переопределяется из JS цветом планеты */
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: clamp(24px, 4vw, 64px);
+  padding: 64px clamp(24px, 6vw, 96px);
+  overflow: hidden;
+  background: var(--navy);
+}
+
+/* Разделы чередуют оттенок фона, чтобы границы между ними читались */
+.planet-section:nth-child(even) {
+  background: var(--navy-deep);
+}
+
+/* Тонкие наклонные линии сверху — декор, как на постерах */
+.planet-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40%;
+  height: 120px;
+  opacity: 0.12;
+  pointer-events: none;
+  background: repeating-linear-gradient(-55deg, var(--cream) 0 1px, transparent 1px 14px);
+  -webkit-mask-image: linear-gradient(to left, #000, transparent);
+  mask-image: linear-gradient(to left, #000, transparent);
+}
+
+.planet-section__art {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 360px;
+}
+
+/* Наклонная орбита за планетой */
+.planet-section__art::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  aspect-ratio: 2.6 / 1;
+  border: 1px solid rgba(241, 228, 200, 0.22);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(-16deg);
+  pointer-events: none;
+}
+
+.planet-section__canvas {
+  position: relative;
+  z-index: 1;
+  height: auto;
+  display: block;
+}
+
+/* Огромный полупрозрачный номер за планетой */
+.planet-section__number {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font-display);
+  font-size: clamp(90px, 14vw, 200px);
+  line-height: 1;
+  color: var(--cream);
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.planet-section__info {
+  position: relative;
+  z-index: 2;
+  max-width: 520px;
+}
+
+.planet-section__kicker {
+  font-family: var(--font-label);
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--mustard);
+  margin-bottom: 14px;
+}
+
+.planet-section__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(32px, 4.4vw, 60px);
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--cream);
+  text-shadow: 4px 4px 0 var(--red);
+}
+
+/* Плашка-«штамп» для Плутона */
+.planet-section__badge {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 6px 12px;
+  border: 2px solid var(--red);
+  font-family: var(--font-label);
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--red);
+  transform: rotate(-3deg);
+}
+
+.planet-section__lead {
+  margin-top: 18px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--cream);
+}
+
+.planet-section__facts {
+  list-style: none;
+  margin-top: 28px;
+  counter-reset: fact;
+}
+
+.planet-section__facts li {
+  position: relative;
+  counter-increment: fact;
+  padding: 14px 0 14px 48px;
+  border-top: 1px solid rgba(241, 228, 200, 0.14);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--cream-dim);
+  text-wrap: pretty;
+}
+
+/* Номер факта цветом планеты: 01, 02, 03… */
+.planet-section__facts li::before {
+  content: counter(fact, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 14px;
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
 }
 
 .footer {
@@ -181,6 +332,32 @@ body::after {
 
   .hero__lead {
     font-size: 14px;
+  }
+
+  /* Разделы: планета сверху, текст под ней */
+  .planet-section {
+    grid-template-columns: 1fr;
+    align-content: center;
+    padding: 48px 24px;
+    gap: 16px;
+  }
+
+  .planet-section__art {
+    min-height: 200px;
+  }
+
+  .planet-section__badge {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .planet-section__lead {
+    font-size: 16px;
+  }
+
+  .planet-section__facts li {
+    font-size: 14px;
+    padding-left: 40px;
   }
 }
 

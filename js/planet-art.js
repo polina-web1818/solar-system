@@ -126,9 +126,12 @@ function drawSurface(ctx, p, r, rand) {
   }
 }
 
-// Полутоновые точки в тени — как в старой типографской печати
-function drawHalftone(ctx, r) {
-  const step = Math.max(2, r * 0.13);
+// Полутоновые точки в тени — как в старой типографской печати.
+// pixelRatio — во сколько раз спрайт крупнее экранных пикселей.
+// Шаг сетки не больше ~4,5 экранных px: на больших планетах точки остаются
+// мелкой текстурой, а у маленьких шаг по-прежнему зависит от радиуса.
+function drawHalftone(ctx, r, pixelRatio) {
+  const step = Math.max(2, Math.min(r * 0.13, 4.5 * pixelRatio));
   ctx.fillStyle = 'rgba(15, 27, 45, 0.35)';
   for (let x = -r; x <= r; x += step) {
     for (let y = -r; y <= r; y += step) {
@@ -164,8 +167,9 @@ function drawRing(ctx, r, color, onlyFront) {
   ctx.restore();
 }
 
-// Главная функция: создаёт спрайт планеты радиусом r пикселей
-function createPlanetSprite(p, r) {
+// Главная функция: создаёт спрайт планеты радиусом r пикселей.
+// pixelRatio — запас по разрешению, с которым спрайт рисуется (обычно dpr)
+function createPlanetSprite(p, r, pixelRatio = 1) {
   const pad = p.ring ? 2.2 : 1.15;
   const size = Math.ceil(r * 2 * pad);
   const canvas = document.createElement('canvas');
@@ -195,12 +199,13 @@ function createPlanetSprite(p, r) {
   ctx.arc(-r * 0.2, -r * 0.2, r * 1.02, 0, Math.PI * 2, true);
   ctx.fill('evenodd');
 
-  drawHalftone(ctx, r);
+  drawHalftone(ctx, r, pixelRatio);
   ctx.restore();
 
-  // Тёмный контур по краю, как обводка на постере
-  ctx.strokeStyle = 'rgba(15, 27, 45, 0.55)';
-  ctx.lineWidth = Math.max(1, r * 0.07);
+  // Тонкий контур цвета фона, как обводка на постере.
+  // Непрозрачный — иначе поверх светлой планеты получается серый ободок
+  ctx.strokeStyle = '#0f1b2d';
+  ctx.lineWidth = Math.max(1, Math.min(r * 0.07, 2 * pixelRatio));
   ctx.beginPath();
   ctx.arc(0, 0, r - ctx.lineWidth / 2, 0, Math.PI * 2);
   ctx.stroke();
@@ -227,17 +232,42 @@ function createSunSprite(r) {
   ctx.fillStyle = glow;
   ctx.fillRect(-size / 2, -size / 2, size, size);
 
-  // Рваный край из множества коротких мазков «кистью»
+  // Рваный край из мазков «кистью»: дуги вдоль края с круглыми концами
   const colors = ['#c2412d', '#d9573e', '#e8862a'];
-  for (let i = 0; i < 700; i++) {
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 260; i++) {
     const a = rand() * Math.PI * 2;
-    const d = r * (0.9 + rand() * 0.12);
-    ctx.save();
-    ctx.rotate(a);
-    ctx.fillStyle = colors[Math.floor(rand() * colors.length)];
+    ctx.strokeStyle = colors[Math.floor(rand() * colors.length)];
+    ctx.globalAlpha = 0.55 + rand() * 0.45;
+    ctx.lineWidth = r * (0.012 + rand() * 0.025);
+    ctx.beginPath();
+    ctx.arc(0, 0, r * (0.92 + rand() * 0.08), a, a + 0.04 + rand() * 0.16);
+    ctx.stroke();
+  }
+
+  // Короткие штрихи наружу — чтобы край был неровным, но не «мохнатым»
+  for (let i = 0; i < 160; i++) {
+    const a = rand() * Math.PI * 2;
+    const d = r * (0.94 + rand() * 0.04);
+    const len = r * (0.02 + rand() * 0.05);
+    ctx.strokeStyle = colors[Math.floor(rand() * colors.length)];
     ctx.globalAlpha = 0.5 + rand() * 0.5;
-    ctx.fillRect(d - r * 0.05, -r * 0.012, r * (0.04 + rand() * 0.08), r * (0.012 + rand() * 0.02));
-    ctx.restore();
+    ctx.lineWidth = r * (0.008 + rand() * 0.014);
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * d, Math.sin(a) * d);
+    ctx.lineTo(Math.cos(a + 0.02) * (d + len), Math.sin(a + 0.02) * (d + len));
+    ctx.stroke();
+  }
+
+  // Брызги краски у самого края
+  for (let i = 0; i < 50; i++) {
+    const a = rand() * Math.PI * 2;
+    const d = r * (1.02 + rand() * 0.08);
+    ctx.fillStyle = colors[Math.floor(rand() * colors.length)];
+    ctx.globalAlpha = 0.4 + rand() * 0.5;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * d, Math.sin(a) * d, r * (0.004 + rand() * 0.01), 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.globalAlpha = 1;
 

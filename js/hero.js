@@ -95,7 +95,7 @@ const Hero = (function () {
     // Спрайты рисуются с запасом по разрешению, чтобы были чёткими на Retina
     sprites = PLANETS.map((p) => {
       const r = p.size * layout.scale;
-      return { r, image: createPlanetSprite(p, r * dpr * 1.15) };
+      return { r, image: createPlanetSprite(p, r * dpr * 1.15, dpr * 1.15) };
     });
     sunSprite = createSunSprite(layout.sunR * dpr);
   }
