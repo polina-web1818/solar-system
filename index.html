@@ -3,22 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Солнечная система</title>
+  <title>Солнечная система — путешествие по планетам</title>
+  <meta name="description" content="Интерактивное путешествие по Солнечной системе">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500&family=Rubik+Mono+One&family=Manrope:wght@400;600&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header class="header">
-    <h1>Солнечная система</h1>
-  </header>
 
-  <main class="main">
-    <!-- Здесь будет главный экран с планетами -->
-  </main>
+  <!-- Главный экран: анимированная Солнечная система -->
+  <section class="hero" id="hero">
+    <canvas class="hero__canvas" id="space"></canvas>
+
+    <div class="hero__text">
+      <p class="hero__kicker">Путеводитель · 8 планет + 1 бывшая</p>
+      <h1 class="hero__title">Солнечная<br>система</h1>
+      <p class="hero__lead">
+        Восемь миров, одна звезда и&nbsp;Плутон, которого понизили в&nbsp;должности.
+        Отправляйся в&nbsp;путешествие от&nbsp;Солнца до&nbsp;самого края.
+      </p>
+    </div>
+
+    <a class="hero__hint" href="#journey">
+      <span>Листай вниз</span>
+      <span class="hero__arrow">↓</span>
+    </a>
+  </section>
+
+  <!-- Сюда в следующих итерациях добавятся разделы планет -->
+  <main class="journey" id="journey"></main>
 
   <footer class="footer">
-    <p>Учебный проект, 2026</p>
+    <p>Учебный проект · Архипцова Полина · МИДиС, 2026</p>
   </footer>
 
+  <script src="js/planets-data.js"></script>
+  <script src="js/planet-art.js"></script>
+  <script src="js/hero.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

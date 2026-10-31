@@ -1,12 +1,205 @@
-/* Базовые стили проекта */
+/* ===== Палитра и переменные (ретро-постер) ===== */
+:root {
+  --navy: #17283f;
+  --navy-deep: #0f1b2d;
+  --cream: #f1e4c8;
+  --cream-dim: rgba(241, 228, 200, 0.6);
+  --red: #c2412d;
+  --orange: #e8862a;
+  --mustard: #e3a83b;
+  --teal: #2f6f68;
+  --sky: #8fb9cf;
+
+  --font-display: "Rubik Mono One", sans-serif;
+  --font-label: "Oswald", sans-serif;
+  --font-text: "Manrope", sans-serif;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: sans-serif;
-  background: #1b2a41;
-  color: #f3e9d2;
+  font-family: var(--font-text);
+  background: var(--navy-deep);
+  color: var(--cream);
+  overflow-x: hidden;
+}
+
+/* Зерно поверх всей страницы — эффект старой печати */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.13;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ===== Главный экран ===== */
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 60% 55%, #1f3552 0%, var(--navy) 45%, var(--navy-deep) 100%);
+}
+
+/* Полутоновая треугольная сетка в углу, как на ретро-постерах */
+.hero::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 55%;
+  height: 60%;
+  opacity: 0.09;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='24'%3E%3Cpath d='M0 24 L14 0 L28 24 Z' fill='none' stroke='%23f1e4c8' stroke-width='1'/%3E%3C/svg%3E");
+  -webkit-mask-image: linear-gradient(135deg, transparent 20%, #000 90%);
+  mask-image: linear-gradient(135deg, transparent 20%, #000 90%);
+}
+
+.hero__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hero__text {
+  position: absolute;
+  top: clamp(32px, 9vh, 96px);
+  left: clamp(24px, 5vw, 80px);
+  max-width: 420px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.hero__kicker {
+  font-family: var(--font-label);
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--mustard);
+  margin-bottom: 18px;
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(34px, 4.6vw, 64px);
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--cream);
+  /* Сдвинутая красная тень — как у надписи на постере */
+  text-shadow: 4px 4px 0 var(--red);
+}
+
+.hero__lead {
+  margin-top: 22px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--cream-dim);
+  max-width: 340px;
+}
+
+.hero__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-label);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cream);
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.hero__hint:hover {
+  opacity: 1;
+}
+
+.hero__arrow {
+  font-size: 20px;
+  animation: bounce 1.8s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* ===== Будущие разделы ===== */
+.journey {
+  min-height: 40vh;
+  background: var(--navy-deep);
+}
+
+.footer {
+  padding: 32px 24px;
+  text-align: center;
+  font-family: var(--font-label);
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+  border-top: 1px solid rgba(241, 228, 200, 0.12);
+}
+
+/* ===== Мобильная версия ===== */
+@media (max-width: 700px) {
+  .hero__text {
+    top: auto;
+    bottom: 96px;
+    max-width: none;
+    right: 24px;
+  }
+
+  .hero__title {
+    text-shadow: 3px 3px 0 var(--red);
+  }
+
+  .hero__lead {
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hero__arrow { animation: none; }
+}
+
+/* На телефоне — затемнение снизу, чтобы текст читался поверх космоса */
+@media (max-width: 700px) {
+  .hero::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 45%;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(15, 27, 45, 0), rgba(15, 27, 45, 0.92) 55%);
+  }
 }
