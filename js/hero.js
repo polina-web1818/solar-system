@@ -20,6 +20,14 @@ const Hero = (function () {
   let lastFrame = 0;
   let running = false;
 
+  // Наведение и клик: мышь, планета под ней и плавное увеличение
+  let mouse = null;      // координаты курсора на canvas или null, если курсор ушёл
+  let hovered = null;    // индекс планеты под курсором, 'sun' или null
+  let targets = [];      // где в этом кадре нарисованы планеты и Солнце (для проверки попадания)
+  const grow = PLANETS.map(() => 1); // текущий масштаб каждой планеты (1 = обычный)
+  let sunGrow = 1;
+  const HOVER_SCALE = 1.2;
+
   // Начальные углы планет на орбитах (каждый раз одинаковые)
   const rand = createRandom(2026);
   const startAngles = PLANETS.map(() => rand() * Math.PI * 2);
@@ -162,10 +170,16 @@ const Hero = (function () {
   }
 
   function drawOrbits() {
-    ctx.lineWidth = 1;
     layout.radii.forEach((R, i) => {
       const isPluto = PLANETS[i].dwarf;
-      ctx.strokeStyle = isPluto ? 'rgba(241, 228, 200, 0.22)' : 'rgba(241, 228, 200, 0.32)';
+      if (i === hovered) {
+        // Орбита планеты под курсором — ярче и толще, горчичным цветом
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(227, 168, 59, 0.9)';
+      } else {
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = isPluto ? 'rgba(241, 228, 200, 0.22)' : 'rgba(241, 228, 200, 0.32)';
+      }
       ctx.setLineDash(isPluto ? [3, 6] : []);
       ctx.beginPath();
       ctx.ellipse(layout.cx, layout.cy, R, R * layout.ratio, layout.tilt, 0, Math.PI * 2);
@@ -185,7 +199,7 @@ const Hero = (function () {
   }
 
   function drawSun() {
-    const size = (sunSprite.width / dpr);
+    const size = (sunSprite.width / dpr) * sunGrow;
     ctx.save();
     ctx.translate(layout.cx, layout.cy);
     ctx.rotate(time * 0.02 * SPEED); // медленное вращение «мазков»
@@ -193,11 +207,11 @@ const Hero = (function () {
     ctx.restore();
   }
 
-  function drawLabel(name, x, y, r) {
+  function drawLabel(name, x, y, r, active) {
     const fontSize = Math.round(Math.max(10, 11 * Math.min(layout.scale, 1.2)));
     ctx.font = `500 ${fontSize}px Oswald, sans-serif`;
     if ('letterSpacing' in ctx) ctx.letterSpacing = '2px';
-    ctx.fillStyle = 'rgba(241, 228, 200, 0.9)';
+    ctx.fillStyle = active ? '#e3a83b' : 'rgba(241, 228, 200, 0.9)';
     ctx.strokeStyle = 'rgba(241, 228, 200, 0.45)';
     // Короткая линия-выноска от планеты к подписи.
     // Если справа не хватает места — подпись уходит влево.
@@ -217,24 +231,55 @@ const Hero = (function () {
     if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
   }
 
+  // ---------- Наведение: какая планета под точкой (x, y)? ----------
+  // Планета — круг. Точка внутри круга, если расстояние от неё до центра
+  // меньше радиуса. Расстояние считаем по теореме Пифагора (Math.hypot).
+  // extra — запас в пикселях: маленькие планеты трудно «поймать», особенно пальцем.
+  function pickTarget(x, y, extra) {
+    // Проверяем с конца: последними нарисованы ближние планеты, они «сверху»
+    for (let j = targets.length - 1; j >= 0; j--) {
+      const t = targets[j];
+      const distance = Math.hypot(x - t.x, y - t.y);
+      if (distance < Math.max(t.r, 10) + extra) return t.id;
+    }
+    return null;
+  }
+
+  // Плавно приближаем масштаб к цели: каждый кадр проходим 20% оставшегося пути
+  function approach(current, target) {
+    return reduceMotion ? target : current + (target - current) * 0.2;
+  }
+
   function draw() {
     if (!layout) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
-
-    drawStars();
-    drawOrbits();
-    drawAsteroids();
 
     // Собираем объекты и сортируем по глубине: дальние рисуем первыми
     const items = PLANETS.map((p, i) => {
       const a = planetAngle(i);
       const pt = orbitPoint(layout.radii[i], a);
       const depth = layout.mobile ? 0 : Math.sin(a);
-      return { i, p, x: pt.x, y: pt.y, depth };
+      const k = layout.mobile ? 1 : 1 + 0.12 * depth; // ближе — крупнее
+      return { i, p, x: pt.x, y: pt.y, depth, k };
     });
     items.push({ sun: true, depth: 0.0001 });
     items.sort((a, b) => a.depth - b.depth);
+
+    // Запоминаем, где что нарисовано, и проверяем, что сейчас под курсором.
+    // Проверка каждый кадр: планеты движутся и могут «уехать» из-под курсора
+    targets = items.map((it) => it.sun
+      ? { id: 'sun', x: layout.cx, y: layout.cy, r: layout.sunR * 0.95 * sunGrow }
+      : { id: it.i, x: it.x, y: it.y, r: sprites[it.i].r * it.k * grow[it.i] });
+    hovered = mouse ? pickTarget(mouse.x, mouse.y, 4) : null;
+    canvas.style.cursor = hovered === null ? '' : 'pointer';
+
+    PLANETS.forEach((_, i) => { grow[i] = approach(grow[i], hovered === i ? HOVER_SCALE : 1); });
+    sunGrow = approach(sunGrow, hovered === 'sun' ? 1.05 : 1);
+
+    drawStars();
+    drawOrbits();
+    drawAsteroids();
 
     for (const it of items) {
       if (it.sun) {
@@ -242,11 +287,42 @@ const Hero = (function () {
         continue;
       }
       const sprite = sprites[it.i];
-      const k = layout.mobile ? 1 : 1 + 0.12 * it.depth; // ближе — крупнее
+      const k = it.k * grow[it.i];
       const size = (sprite.image.width / dpr / 1.15) * k;
       ctx.drawImage(sprite.image, it.x - size / 2, it.y - size / 2, size, size);
-      drawLabel(it.p.name, it.x, it.y, sprite.r * k);
+      drawLabel(it.p.name, it.x, it.y, sprite.r * k, hovered === it.i);
     }
+  }
+
+  // ---------- Мышь и пальцы ----------
+  // Координаты события относительно левого верхнего угла canvas
+  function pointerPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  }
+
+  function goToSection(target) {
+    const id = target === 'sun' ? SUN.id : PLANETS[target].id;
+    mouse = null; // страница уедет, курсор окажется уже не над главным экраном
+    document.getElementById(id).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+
+  function bindPointer() {
+    canvas.addEventListener('pointermove', (event) => {
+      // На телефоне наведения нет — подсветку по движению пальца не включаем
+      if (event.pointerType === 'mouse') mouse = pointerPosition(event);
+    });
+    canvas.addEventListener('pointerleave', () => { mouse = null; });
+
+    // Клик мышью и тап пальцем приходят одним событием click
+    let lastPointerType = 'mouse';
+    canvas.addEventListener('pointerdown', (event) => { lastPointerType = event.pointerType; });
+    canvas.addEventListener('click', (event) => {
+      const pos = pointerPosition(event);
+      // Палец толще курсора, поэтому для тапа запас попадания больше
+      const target = pickTarget(pos.x, pos.y, lastPointerType === 'mouse' ? 4 : 16);
+      if (target !== null) goToSection(target);
+    });
   }
 
   // ---------- Анимационный цикл ----------
@@ -273,6 +349,7 @@ const Hero = (function () {
   function init() {
     resize();
     window.addEventListener('resize', resize);
+    bindPointer();
 
     // Анимация работает, только пока главный экран виден — экономим батарею
     const observer = new IntersectionObserver((entries) => {
