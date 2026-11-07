@@ -2,4 +2,5 @@
 document.addEventListener('DOMContentLoaded', () => {
   Hero.init();
   Sections.init();
+  Nav.init(); // после Sections: точкам нужны уже созданные разделы
 });

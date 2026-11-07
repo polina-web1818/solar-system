@@ -14,7 +14,7 @@ const Sections = (function () {
     section.className = 'planet-section';
     section.id = body.id;
     // Цвет планеты становится акцентом раздела (номера фактов, подчёркивание)
-    section.style.setProperty('--accent', body.base || '#e8862a');
+    section.style.setProperty('--accent', body.base);
 
     const badge = body.dwarf
       ? '<p class="planet-section__badge">Бывшая планета · с 2006 года — карликовая</p>'
@@ -65,6 +65,11 @@ const Sections = (function () {
       const sprite = body === SUN ? createSunSprite(r * dpr) : createPlanetSprite(body, r * dpr, dpr);
       sprite.className = 'planet-section__canvas';
       sprite.style.width = `${sprite.width / dpr}px`;
+      // У Солнца (свечение) и Сатурна (запас под кольца) вокруг рисунка много
+      // прозрачного места. Отрицательный отступ сверху и снизу не даёт ему
+      // раздувать высоту раздела — иначе на телефоне раздел не влезает в экран
+      const trim = body === SUN ? r * 0.5 : body.ring ? r * 1.1 : 0;
+      sprite.style.margin = `${-trim}px 0`;
       sprite.setAttribute('role', 'img');
       sprite.setAttribute('aria-label', body.name);
 

@@ -23,6 +23,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* Scroll snap: прокрутка «примагничивается» к началу экранов */
+  scroll-snap-type: y mandatory;
 }
 
 body {
@@ -51,6 +53,7 @@ body::after {
   height: 100svh;
   min-height: 560px;
   overflow: hidden;
+  scroll-snap-align: start;
   background: radial-gradient(ellipse at 60% 55%, #1f3552 0%, var(--navy) 45%, var(--navy-deep) 100%);
 }
 
@@ -160,11 +163,15 @@ body::after {
   min-height: 100vh;
   min-height: 100svh;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0, …): колонка не растягивается, даже если рисунок шире неё */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
   gap: clamp(24px, 4vw, 64px);
-  padding: 64px clamp(24px, 6vw, 96px);
+  /* справа отступ побольше — там навигация точками */
+  padding: 64px clamp(56px, 6vw, 96px) 64px clamp(24px, 6vw, 96px);
   overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always; /* одно движение = ровно один экран, без перескоков */
   background: var(--navy);
 }
 
@@ -315,6 +322,94 @@ body::after {
   text-transform: uppercase;
   color: var(--cream-dim);
   border-top: 1px solid rgba(241, 228, 200, 0.12);
+  scroll-snap-align: end; /* чтобы до подвала тоже можно было докрутить */
+}
+
+/* ===== Навигация точками ===== */
+.dots {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Скрыта на главном экране: JS добавляет класс is-visible в разделах */
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(16px, -50%);
+  transition: opacity 0.4s, transform 0.4s;
+}
+
+.dots.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, -50%);
+}
+
+/* Ссылка — невидимая «мишень» побольше точки, чтобы легче попасть курсором/пальцем */
+.dots__link {
+  --accent: var(--orange); /* переопределяется из JS цветом планеты */
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+/* Сама точка */
+.dots__link::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(241, 228, 200, 0.6);
+  transform: translate(-50%, -50%);
+  transition: transform 0.25s, background-color 0.25s, border-color 0.25s;
+}
+
+.dots__link:hover::before,
+.dots__link:focus-visible::before {
+  border-color: var(--cream);
+}
+
+.dots__link.is-active::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: translate(-50%, -50%) scale(1.5);
+}
+
+/* Название слева от точки — появляется при наведении */
+.dots__label {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  white-space: nowrap;
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cream);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(6px, -50%);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.dots__link:hover .dots__label,
+.dots__link:focus-visible .dots__label {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.dots__link.is-active .dots__label {
+  color: var(--accent);
+}
+
+.dots__link:focus-visible {
+  outline: none;
 }
 
 /* ===== Мобильная версия ===== */
@@ -336,10 +431,30 @@ body::after {
 
   /* Разделы: планета сверху, текст под ней */
   .planet-section {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     align-content: center;
-    padding: 48px 24px;
+    padding: 32px 36px 32px 24px; /* справа место под точки */
     gap: 16px;
+  }
+
+  /* Точки меньше и ближе к краю; названия не показываем — на телефоне нет наведения */
+  .dots {
+    right: 6px;
+    gap: 2px;
+  }
+
+  .dots__link {
+    width: 18px;
+    height: 18px;
+  }
+
+  .dots__link::before {
+    width: 6px;
+    height: 6px;
+  }
+
+  .dots__label {
+    display: none;
   }
 
   .planet-section__art {
