@@ -76,6 +76,45 @@
     </div>
   </section>
 
+  <!-- Ты и космос, второй экран: сколько лететь (логика в js/travel.js) -->
+  <section class="you you--travel" id="travel">
+    <div class="you__intro">
+      <p class="you__kicker">10 · Ты и космос</p>
+      <h2 class="you__title">Сколько лететь</h2>
+      <p class="you__lead">Выбери, куда и на чём. Считаем без остановок, по среднему расстоянию от Земли.</p>
+    </div>
+
+    <article class="calc travel">
+      <div class="travel__choices">
+        <div class="travel__group">
+          <h3 class="calc__title" id="travel-target-title">Куда</h3>
+          <div class="chips" id="travel-targets" role="group" aria-labelledby="travel-target-title"></div>
+        </div>
+        <div class="travel__group">
+          <h3 class="calc__title" id="travel-transport-title">На чём</h3>
+          <div class="chips" id="travel-transports" role="group" aria-labelledby="travel-transport-title"></div>
+        </div>
+      </div>
+
+      <div class="travel__result" aria-live="polite">
+        <p class="travel__time" id="travel-time">—</p>
+        <p class="travel__details" id="travel-details"></p>
+        <p class="travel__lives" id="travel-lives"></p>
+
+        <!-- Анимация: точка-«корабль» летит от Земли к планете -->
+        <div class="flight" aria-hidden="true">
+          <span class="flight__planet flight__planet--earth"></span>
+          <span class="flight__track"><span class="flight__ship" id="travel-ship"></span></span>
+          <span class="flight__planet" id="travel-target-dot"></span>
+        </div>
+        <div class="flight__labels" aria-hidden="true">
+          <span>Земля</span>
+          <span id="travel-target-name"></span>
+        </div>
+      </div>
+    </article>
+  </section>
+
   <footer class="footer">
     <p>Учебный проект · Архипцова Полина · МИДиС, 2026</p>
   </footer>
@@ -85,6 +124,7 @@
   <script src="js/hero.js"></script>
   <script src="js/sections.js"></script>
   <script src="js/calculators.js"></script>
+  <script src="js/travel.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/main.js"></script>
 </body>

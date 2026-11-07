@@ -553,6 +553,182 @@ body::after {
   color: var(--cream-dim);
 }
 
+/* ===== Ты и космос: сколько лететь ===== */
+.you--travel {
+  background: var(--navy-deep); /* другой оттенок — видно, что это новый экран */
+}
+
+.travel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: center;
+  background: var(--navy);
+}
+
+.travel__group + .travel__group {
+  margin-top: 22px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Кнопка-чипс: выбранная — кремовая с тёмным текстом и красной тенью */
+.chip {
+  --accent: var(--cream);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid rgba(241, 228, 200, 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cream);
+  font-family: var(--font-label);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.chip:hover {
+  border-color: var(--cream);
+}
+
+.chip:focus-visible {
+  outline: 3px solid var(--mustard);
+  outline-offset: 2px;
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--cream);
+  border-color: var(--cream);
+  color: var(--navy-deep);
+  box-shadow: 3px 3px 0 var(--red);
+}
+
+/* Мини-кружок цвета планеты */
+.chip__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: inset -2px -2px 0 rgba(15, 27, 45, 0.35); /* тень-полумесяц, как у планет */
+}
+
+.chip__hint {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: none;
+  opacity: 0.65;
+}
+
+.travel__result {
+  min-width: 0;
+}
+
+/* Крупный результат шрифтом Rubik Mono One */
+.travel__time {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.4vw, 44px);
+  line-height: 1.15;
+  color: var(--cream);
+  text-shadow: 3px 3px 0 var(--red);
+}
+
+.travel__details {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cream-dim);
+}
+
+.travel__lives {
+  min-height: 1.5em;
+  margin-top: 8px;
+  font-family: var(--font-label);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mustard);
+}
+
+/* Полёт: Земля — пунктирная линия — планета, по линии летит точка */
+.flight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.flight__planet {
+  --accent: var(--orange);
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: inset -4px -4px 0 rgba(15, 27, 45, 0.35);
+}
+
+.flight__planet--earth {
+  background: #5aa6cf;
+}
+
+.flight__planet.is-sun {
+  width: 34px;
+  height: 34px;
+  box-shadow: 0 0 14px rgba(232, 134, 42, 0.7);
+}
+
+.flight__track {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(241, 228, 200, 0.45) 0 6px, transparent 6px 12px);
+}
+
+.flight__ship {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--mustard);
+  box-shadow: 0 0 10px var(--mustard), -10px 0 0 -3px rgba(227, 168, 59, 0.5); /* светящаяся точка со «следом» */
+  opacity: 0;
+}
+
+/* --flight — длительность, её задаёт JS: чем дольше настоящий полёт, тем медленнее точка */
+.flight__ship.is-flying {
+  animation: flight var(--flight, 2s) linear infinite;
+}
+
+@keyframes flight {
+  0% { left: 0; opacity: 0; }
+  8% { opacity: 1; }
+  88% { left: 100%; opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+.flight__labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+}
+
 /* ===== Навигация точками ===== */
 .dots {
   position: fixed;
@@ -698,6 +874,24 @@ body::after {
     font-size: 16px;
   }
 
+  .travel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* На телефоне результат — над кнопками: нажал чипс и сразу видишь ответ */
+  .travel__result {
+    order: -1;
+  }
+
+  .flight {
+    margin-top: 16px;
+  }
+
+  .chip {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
   /* Точки меньше и ближе к краю; названия не показываем — на телефоне нет наведения */
   .dots {
     right: 6px;
@@ -741,6 +935,8 @@ body::after {
   html { scroll-behavior: auto; }
   .hero__arrow { animation: none; }
   .calc__fill { transition: none; }
+  /* Без анимации — точка просто стоит посередине пути */
+  .flight__ship.is-flying { animation: none; left: 50%; opacity: 1; }
 }
 
 /* На телефоне — затемнение снизу, чтобы текст читался поверх космоса */
