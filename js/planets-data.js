@@ -1,11 +1,16 @@
 // Данные о планетах. Размеры на экране стилизованные (не в реальном масштабе),
 // а периоды обращения — настоящие (в земных годах), от них зависит скорость.
 // kind, lead, facts — тексты для разделов планет под главным экраном.
+// gravity — во сколько раз сила тяжести сильнее земной (ускорение свободного
+//   падения на экваторе, делённое на земное 9,807 м/с²; у газовых гигантов —
+//   на уровне верхушек облаков). Источник: фактлисты NASA по каждой планете.
+// periodDays — сколько земных суток длится один оборот вокруг Солнца (год планеты).
 
 const PLANETS = [
   {
     id: 'mercury', name: 'Меркурий', period: 0.24, size: 7, type: 'rocky',
     base: '#b5452f', stripes: ['#8f2f22', '#d86a4a'], seed: 11,
+    gravity: 0.377, periodDays: 87.97,
     kind: 'Планета земной группы',
     lead: 'Самая маленькая планета и самая близкая к Солнцу.',
     facts: [
@@ -18,6 +23,7 @@ const PLANETS = [
   {
     id: 'venus', name: 'Венера', period: 0.62, size: 11, type: 'swirl',
     base: '#e8862a', stripes: ['#c2412d', '#f2b45a'], seed: 23,
+    gravity: 0.904, periodDays: 224.7,
     kind: 'Планета земной группы',
     lead: 'Соседка и «сестра» Земли — но очень злая сестра.',
     facts: [
@@ -30,6 +36,7 @@ const PLANETS = [
   {
     id: 'earth', name: 'Земля', period: 1, size: 12, type: 'earth',
     base: '#5aa6cf', stripes: ['#f1e4c8', '#3f7fae'], seed: 37,
+    gravity: 1, periodDays: 365.256,
     kind: 'Планета земной группы',
     lead: 'Наш дом и пока единственное известное место, где есть жизнь.',
     facts: [
@@ -42,6 +49,7 @@ const PLANETS = [
   {
     id: 'mars', name: 'Марс', period: 1.88, size: 9, type: 'rocky',
     base: '#c2412d', stripes: ['#8f2f22', '#e0694c'], seed: 41,
+    gravity: 0.378, periodDays: 686.98,
     kind: 'Планета земной группы',
     lead: 'Красная планета, куда люди мечтают отправить первую экспедицию.',
     facts: [
@@ -54,6 +62,7 @@ const PLANETS = [
   {
     id: 'jupiter', name: 'Юпитер', period: 11.86, size: 27, type: 'gas',
     base: '#d9573e', stripes: ['#f1e4c8', '#a83526', '#f2c9a8'], seed: 53, spot: true,
+    gravity: 2.528, periodDays: 4332.59,
     kind: 'Газовый гигант',
     lead: 'Самая большая планета — король Солнечной системы.',
     facts: [
@@ -66,6 +75,7 @@ const PLANETS = [
   {
     id: 'saturn', name: 'Сатурн', period: 29.46, size: 22, type: 'gas',
     base: '#f2c9a8', stripes: ['#e6b48e', '#f7dcc2'], seed: 67, ring: '#e3a83b',
+    gravity: 1.065, periodDays: 10759.22,
     kind: 'Газовый гигант',
     lead: 'Планета с самыми красивыми кольцами.',
     facts: [
@@ -78,6 +88,7 @@ const PLANETS = [
   {
     id: 'uranus', name: 'Уран', period: 84, size: 16, type: 'plain',
     base: '#9fc4d6', stripes: ['#c6dde8', '#7aa6bd'], seed: 71,
+    gravity: 0.904, periodDays: 30688.5,
     kind: 'Ледяной гигант',
     lead: 'Планета, которая катится по орбите, лёжа на боку.',
     facts: [
@@ -90,6 +101,7 @@ const PLANETS = [
   {
     id: 'neptune', name: 'Нептун', period: 164.8, size: 15, type: 'streak',
     base: '#3f7fae', stripes: ['#f1e4c8', '#2b5f88'], seed: 83,
+    gravity: 1.137, periodDays: 60182,
     kind: 'Ледяной гигант',
     lead: 'Самая далёкая планета — синяя и очень ветреная.',
     facts: [
@@ -102,6 +114,7 @@ const PLANETS = [
   {
     id: 'pluto', name: 'Плутон', period: 248, size: 5, type: 'rocky',
     base: '#c9b49a', stripes: ['#9c8670', '#e8d8c0'], seed: 97, dwarf: true,
+    gravity: 0.063, periodDays: 90560,
     kind: 'Карликовая планета',
     lead: 'Бывшая девятая планета на самом краю системы.',
     facts: [
@@ -116,6 +129,7 @@ const PLANETS = [
 // Солнце — не планета, поэтому хранится отдельно (у него свой рисунок)
 const SUN = {
   id: 'sun', name: 'Солнце', base: '#e8862a',
+  gravity: 27.94, // у Солнца нет твёрдой поверхности — это сила тяжести на его «краю»
   kind: 'Звезда',
   lead: 'Звезда, вокруг которой всё вращается.',
   facts: [

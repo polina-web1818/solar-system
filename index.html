@@ -36,6 +36,46 @@
   <!-- Разделы планет: создаются из данных в js/sections.js -->
   <main class="journey" id="journey"></main>
 
+  <!-- Ты и космос: калькуляторы (логика в js/calculators.js) -->
+  <section class="you" id="you">
+    <div class="you__intro">
+      <p class="you__kicker">10 · Ты и космос</p>
+      <h2 class="you__title">Ты и космос</h2>
+      <p class="you__lead">Сколько ты весишь на других планетах и сколько тебе там лет? Введи свои данные — всё посчитается сразу.</p>
+    </div>
+
+    <div class="you__cards">
+      <article class="calc" id="calc-weight">
+        <h3 class="calc__title">Вес на планетах</h3>
+        <!-- type="text", а не "number": в Яндекс Браузере ввод в number-поле открывал поиск.
+             inputmode="decimal" — на телефоне всё равно откроется цифровая клавиатура.
+             Число разбирает JS (поддерживает и запятую, и точку) -->
+        <div class="calc__field">
+          <label class="calc__label" for="weight-input">Твой вес, кг</label>
+          <input class="calc__input" id="weight-input" type="text" inputmode="decimal"
+                 autocomplete="off" placeholder="например, 55">
+        </div>
+        <p class="calc__message" id="weight-message" aria-live="polite"></p>
+        <ul class="calc__list" id="weight-list"></ul>
+        <p class="calc__note">Масса у тебя везде одна и та же — меняется сила, с которой планета тебя притягивает.
+          Шкала Солнца не помещается: она в 11 раз длиннее шкалы Юпитера.</p>
+      </article>
+
+      <article class="calc" id="calc-age">
+        <h3 class="calc__title">Возраст на планетах</h3>
+        <div class="calc__field">
+          <label class="calc__label" for="birth-input">Дата рождения</label>
+          <!-- Тоже type="text" вместо "date" (Яндекс Браузер). Точки ставит маска в JS -->
+          <input class="calc__input" id="birth-input" type="text" inputmode="numeric"
+                 autocomplete="off" maxlength="10" placeholder="ДД.ММ.ГГГГ">
+        </div>
+        <p class="calc__message" id="age-message" aria-live="polite"></p>
+        <ul class="calc__list" id="age-list"></ul>
+        <p class="calc__note">Год планеты — один её оборот вокруг Солнца. У Солнца своего года нет, поэтому его здесь нет.</p>
+      </article>
+    </div>
+  </section>
+
   <footer class="footer">
     <p>Учебный проект · Архипцова Полина · МИДиС, 2026</p>
   </footer>
@@ -44,6 +84,7 @@
   <script src="js/planet-art.js"></script>
   <script src="js/hero.js"></script>
   <script src="js/sections.js"></script>
+  <script src="js/calculators.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/main.js"></script>
 </body>

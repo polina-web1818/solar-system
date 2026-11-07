@@ -325,6 +325,234 @@ body::after {
   scroll-snap-align: end; /* чтобы до подвала тоже можно было докрутить */
 }
 
+/* ===== Ты и космос: калькуляторы ===== */
+.you {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px clamp(56px, 6vw, 96px) 36px clamp(24px, 6vw, 96px);
+  background: var(--navy);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  overflow: hidden;
+}
+
+/* Треугольная полутоновая сетка в углу, как на главном экране */
+.you::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 50%;
+  height: 60%;
+  opacity: 0.07;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='24'%3E%3Cpath d='M0 24 L14 0 L28 24 Z' fill='none' stroke='%23f1e4c8' stroke-width='1'/%3E%3C/svg%3E");
+  -webkit-mask-image: linear-gradient(45deg, #000 10%, transparent 80%);
+  mask-image: linear-gradient(45deg, #000 10%, transparent 80%);
+}
+
+.you__intro {
+  position: relative;
+  max-width: 640px;
+}
+
+.you__kicker {
+  font-family: var(--font-label);
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--mustard);
+  margin-bottom: 14px;
+}
+
+.you__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(32px, 4.4vw, 60px);
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--cream);
+  text-shadow: 4px 4px 0 var(--red);
+}
+
+.you__lead {
+  margin-top: 12px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--cream);
+}
+
+.you__cards {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+
+/* Карточка: тёмная, с тонкой рамкой и сдвинутой «типографской» тенью */
+.calc {
+  padding: 20px clamp(18px, 2vw, 28px) 16px;
+  background: var(--navy-deep);
+  border: 1px solid rgba(241, 228, 200, 0.25);
+  box-shadow: 6px 6px 0 var(--teal);
+}
+
+.calc__title {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--mustard);
+}
+
+.calc__field {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.calc__label {
+  flex: none;
+  cursor: pointer; /* клик по подписи ставит курсор в поле (label for) */
+  font-family: var(--font-label);
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+}
+
+/* Поле ввода — кремовая «плашка» с рамкой, сдвинутой тенью и крупными цифрами:
+   должно быть сразу видно, что сюда можно печатать */
+.calc__input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 16px;
+  border: 3px solid rgba(241, 228, 200, 0.45);
+  border-radius: 0;
+  background: var(--cream);
+  background-clip: padding-box; /* рамка видна поверх тёмного фона, а не на креме */
+  box-shadow: 4px 4px 0 var(--red);
+  color: var(--navy-deep);
+  caret-color: var(--red);
+  font-family: var(--font-display);
+  font-size: 22px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.calc__input::placeholder {
+  color: rgba(15, 27, 45, 0.38);
+  font-family: var(--font-text);
+  font-size: 17px;
+}
+
+.calc__input:hover {
+  border-color: var(--cream);
+}
+
+/* Фокус: яркая горчичная рамка и свечение — курсор здесь, можно печатать */
+.calc__input:focus {
+  outline: none;
+  border-color: var(--mustard);
+  box-shadow: 4px 4px 0 var(--red), 0 0 0 4px rgba(227, 168, 59, 0.35);
+}
+
+/* Подсказка или ошибка под полем; min-height — чтобы список не прыгал */
+.calc__message {
+  min-height: 1.5em;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cream-dim);
+}
+
+.calc__message.is-error {
+  color: #e0694c;
+}
+
+.calc__list {
+  list-style: none;
+  margin-top: 6px;
+}
+
+/* Строка: название | шкала | число.
+   Колонка с числом фиксированной ширины — тогда все шкалы одной длины и их можно сравнивать */
+.calc__row {
+  --accent: var(--orange); /* переопределяется из JS цветом планеты */
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 140px;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  border-top: 1px solid rgba(241, 228, 200, 0.1);
+}
+
+.calc__name {
+  font-family: var(--font-label);
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.calc__value {
+  grid-column: 3;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.calc__number {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--cream);
+}
+
+.calc__unit {
+  font-family: var(--font-label);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--cream-dim);
+}
+
+.calc__bar {
+  grid-column: 2;
+  grid-row: 1;
+  height: 8px;
+  background: rgba(241, 228, 200, 0.08);
+}
+
+/* Заполнение шкалы: JS задаёт scaleX от 0 до 1, CSS плавно анимирует.
+   --i — номер строки: шкалы вырастают по очереди, «лесенкой» */
+.calc__fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i, 0) * 50ms);
+}
+
+/* Солнце не помещается в шкалу — конец полоски «рваный», в штрих */
+.calc__row.is-overflow .calc__fill {
+  background:
+    linear-gradient(var(--accent), var(--accent)) left / calc(100% - 28px) 100% no-repeat,
+    repeating-linear-gradient(-55deg, var(--accent) 0 5px, transparent 5px 9px) right / 28px 100% no-repeat;
+}
+
+.calc__note {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cream-dim);
+}
+
 /* ===== Навигация точками ===== */
 .dots {
   position: fixed;
@@ -437,6 +665,39 @@ body::after {
     gap: 16px;
   }
 
+  /* Ты и космос: карточки друг под другом */
+  .you {
+    padding: 40px 36px 40px 24px;
+    gap: 24px;
+  }
+
+  .you__title {
+    text-shadow: 3px 3px 0 var(--red);
+  }
+
+  .you__lead {
+    font-size: 16px;
+  }
+
+  .you__cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .calc__field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .calc__row {
+    grid-template-columns: 82px minmax(0, 1fr) 118px;
+    gap: 8px;
+  }
+
+  .calc__number {
+    font-size: 16px;
+  }
+
   /* Точки меньше и ближе к краю; названия не показываем — на телефоне нет наведения */
   .dots {
     right: 6px;
@@ -479,6 +740,7 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .hero__arrow { animation: none; }
+  .calc__fill { transition: none; }
 }
 
 /* На телефоне — затемнение снизу, чтобы текст читался поверх космоса */
