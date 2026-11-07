@@ -41,7 +41,7 @@ const Sections = (function () {
   function baseRadius() {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    if (w <= 700) return Math.min(w / 3.6, 110);
+    if (w <= 700) return Math.min(w / 3.9, 100);
     return Math.max(80, Math.min(w * 0.45 / 2.5, h * 0.3, 210));
   }
 

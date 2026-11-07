@@ -6,7 +6,9 @@ const Hero = (function () {
   const ctx = canvas.getContext('2d');
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const SPEED = reduceMotion ? 0.15 : 1;
+  // Общая скорость анимации. 0,4 — в 2,5 раза медленнее первой версии:
+  // по быстрым планетам было трудно попасть курсором
+  const SPEED = reduceMotion ? 0.06 : 0.4;
 
   let width = 0;
   let height = 0;
@@ -37,17 +39,39 @@ const Hero = (function () {
     const mobile = width <= 700;
 
     if (!mobile) {
-      const scale = Math.min(1.4, Math.max(0.6, width / 1440)) * 1.5;
-      const tilt = -0.28;
-      const ratio = 0.34;
+      const scale = Math.min(1.4, Math.max(0.6, width / 1440)) * 1.8;
+      // Наклон и сжатие орбит — как на референсе references/5-desktop-orbits.png
+      const tilt = -0.42;
+      const ratio = 0.42;
       const sunR = 30 * scale;
       const rMin = sunR * 1.9;
-      const rMax = Math.min(width * 0.55, height * 1.1);
+      // Наклонённый эллипс радиуса 1 занимает halfW в стороны от центра и halfH вверх-вниз
+      const halfW = Math.hypot(Math.cos(tilt), ratio * Math.sin(tilt));
+      const halfH = Math.hypot(Math.sin(tilt), ratio * Math.cos(tilt));
+      // Система занимает правые ~70% экрана (слева заголовок) и почти всю высоту
+      const left = width * 0.28;
+      const halfRoom = (width - 10 - left) / 2;   // половина ширины, отведённой под систему
+      const cx = left + halfRoom;
+      const cy = height * 0.48;
+      // Орбиты распределены от rMin до rMax: доля f — насколько орбита близка к внешней
+      const share = (i) => Math.pow(i / (PLANETS.length - 1), 0.9);
+      // Для каждой планеты свой запас (её радиус с учётом увеличения при наведении):
+      // на внешних орбитах маленькие Нептун и Плутон, им нужно меньше места.
+      // Из условия «орбита i с планетой помещается» находим, каким может быть rMax
+      let rMax = Infinity;
+      PLANETS.forEach((p, i) => {
+        if (i === 0) return;
+        const pad = p.size * scale * 1.12 * HOVER_SCALE;
+        const fit = Math.min(
+          (halfRoom - pad) / halfW,                 // по бокам
+          (cy - pad - 26) / halfH,                  // сверху (26 — место под подпись)
+          (height - 84 - cy - pad) / halfH         // снизу (84 — надпись «Листай вниз»)
+        );
+        rMax = Math.min(rMax, rMin + (fit - rMin) / share(i));
+      });
       return {
-        mobile, scale, tilt, ratio, sunR,
-        cx: width * 0.6,
-        cy: height * 0.56,
-        radii: PLANETS.map((_, i) => rMin + (rMax - rMin) * Math.pow(i / (PLANETS.length - 1), 0.9))
+        mobile, scale, tilt, ratio, sunR, cx, cy,
+        radii: PLANETS.map((_, i) => rMin + (rMax - rMin) * share(i))
       };
     }
 
@@ -58,7 +82,15 @@ const Hero = (function () {
     const cy = -height * 0.05;
     const sunR = width * 0.36;
     const rMin = sunR * 1.45;
-    const rMax = Math.hypot(width * 0.8 - cx, height * 0.55 - cy);
+    // Плутон (последняя орбита) стоит слева, на 22% ширины. Его орбита должна
+    // проходить выше заголовка: берём верх блока с текстом и отступаем вверх
+    const textTop = document.querySelector('.hero__text').getBoundingClientRect().top -
+      canvas.getBoundingClientRect().top;
+    const plutoMaxY = textTop - 36;
+    const rMax = Math.min(
+      Math.hypot(width * 0.8 - cx, height * 0.55 - cy),
+      Math.hypot(width * 0.22 - cx, plutoMaxY - cy)
+    );
     return {
       mobile, scale, tilt: 0, ratio: 1, sunR, cx, cy,
       radii: PLANETS.map((_, i) => rMin + (rMax - rMin) * Math.pow(i / (PLANETS.length - 1), 0.95))
@@ -105,7 +137,8 @@ const Hero = (function () {
       const r = p.size * layout.scale;
       return { r, image: createPlanetSprite(p, r * dpr * 1.15, dpr * 1.15) };
     });
-    sunSprite = createSunSprite(layout.sunR * dpr);
+    // На телефоне Солнце огромное и край «колючий» — рисуем его мягче
+    sunSprite = createSunSprite(layout.sunR * dpr, { soft: layout.mobile });
   }
 
   function resize() {
@@ -207,29 +240,105 @@ const Hero = (function () {
     ctx.restore();
   }
 
-  function drawLabel(name, x, y, r, active) {
-    const fontSize = Math.round(Math.max(10, 11 * Math.min(layout.scale, 1.2)));
-    ctx.font = `500 ${fontSize}px Oswald, sans-serif`;
-    if ('letterSpacing' in ctx) ctx.letterSpacing = '2px';
-    ctx.fillStyle = active ? '#e3a83b' : 'rgba(241, 228, 200, 0.9)';
-    ctx.strokeStyle = 'rgba(241, 228, 200, 0.45)';
-    // Короткая линия-выноска от планеты к подписи.
-    // Если справа не хватает места — подпись уходит влево.
-    const text = name.toUpperCase();
-    const textWidth = ctx.measureText(text).width;
-    const flip = x + r + textWidth + 30 > width;
-    const dir = flip ? -1 : 1;
-    const sx = x + dir * r * 0.75;
-    const sy = y - r * 0.75;
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.lineTo(sx + dir * 10, sy - 10);
-    ctx.stroke();
-    ctx.textAlign = flip ? 'right' : 'left';
-    ctx.fillText(text, sx + dir * 13, sy - 12);
-    ctx.textAlign = 'left';
-    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+  // ---------- Подписи ----------
+  // Где можно поставить подпись относительно планеты: dx, dy — направление
+  // выноски (вправо-вверх, влево-вверх, вправо-вниз, влево-вниз), len — её длина
+  const LABEL_SPOTS = [
+    { dx: 1, dy: -1, len: 8 }, { dx: -1, dy: -1, len: 8 },
+    { dx: 1, dy: 1, len: 8 }, { dx: -1, dy: 1, len: 8 },
+    { dx: 1, dy: -1, len: 22 }, { dx: -1, dy: -1, len: 22 },
+    { dx: 1, dy: 1, len: 22 }, { dx: -1, dy: 1, len: 22 }
+  ];
+  const lastSpot = {}; // какое место подпись занимала в прошлом кадре (чтобы не прыгала)
+
+  function labelFont() {
+    const fontSize = Math.round(Math.max(9, 10 * Math.min(layout.scale / 1.5, 1.15)));
+    return { size: fontSize, css: `300 ${fontSize}px Oswald, sans-serif` };
   }
+
+  // Прямоугольник подписи и точки выноски для варианта места spot
+  function labelBox(label, spot, font) {
+    const sx = label.x + spot.dx * label.r * 0.72;
+    const sy = label.y + spot.dy * label.r * 0.72;
+    const ex = sx + spot.dx * spot.len;
+    const ey = sy + spot.dy * spot.len;
+    const w = label.width;
+    const h = font.size;
+    const bx = spot.dx > 0 ? ex + 3 : ex - 3 - w;
+    const by = spot.dy < 0 ? ey - h - 1 : ey + 1;
+    return { sx, sy, ex, ey, x: bx, y: by, w, h };
+  }
+
+  // Пересекается ли прямоугольник с кругом: ближайшая к центру круга точка
+  // прямоугольника должна быть дальше радиуса
+  function rectHitsCircle(b, c) {
+    const nx = Math.max(b.x, Math.min(c.x, b.x + b.w));
+    const ny = Math.max(b.y, Math.min(c.y, b.y + b.h));
+    return Math.hypot(nx - c.x, ny - c.y) < c.r + 2;
+  }
+
+  function rectsOverlap(a, b) {
+    return a.x < b.x + b.w + 4 && b.x < a.x + a.w + 4 && a.y < b.y + b.h + 2 && b.y < a.y + a.h + 2;
+  }
+
+  // Для каждой подписи пробуем места по очереди и берём первое, где она
+  // не вылезает за экран и не задевает планеты, Солнце и уже поставленные подписи
+  function placeLabels(labels, circles) {
+    const font = labelFont();
+    ctx.font = font.css;
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '1.5px';
+    const placed = [];
+    labels.forEach((label) => {
+      label.width = ctx.measureText(label.text).width;
+      const order = lastSpot[label.text] !== undefined
+        ? [lastSpot[label.text], ...LABEL_SPOTS.keys()]
+        : [...LABEL_SPOTS.keys()];
+      let chosen = null;
+      for (const index of order) {
+        const box = labelBox(label, LABEL_SPOTS[index], font);
+        const inside = box.x > 4 && box.y > 4 && box.x + box.w < width - 4 && box.y + box.h < height - 4;
+        const free = inside &&
+          !placed.some((other) => rectsOverlap(box, other)) &&
+          !circles.some((c) => c.id !== label.id && rectHitsCircle(box, c));
+        if (free) {
+          chosen = { box, index };
+          break;
+        }
+      }
+      // Если свободного места нет совсем — ставим на привычное место (лучше, чем не показать)
+      if (!chosen) chosen = { box: labelBox(label, LABEL_SPOTS[order[0]], font), index: order[0] };
+      lastSpot[label.text] = chosen.index;
+      label.box = chosen.box;
+      placed.push(chosen.box);
+    });
+    return font;
+  }
+
+  function drawLabels(labels, circles) {
+    const font = placeLabels(labels, circles);
+    ctx.textBaseline = 'top';
+    labels.forEach((label) => {
+      const b = label.box;
+      // Тонкая выноска от планеты к подписи
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(241, 228, 200, 0.35)';
+      ctx.beginPath();
+      ctx.moveTo(b.sx, b.sy);
+      ctx.lineTo(b.ex, b.ey);
+      ctx.stroke();
+      // Тёмная обводка цвета фона под буквами — подпись читается даже поверх Солнца
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = 'rgba(15, 27, 45, 0.8)';
+      ctx.strokeText(label.text, b.x, b.y);
+      ctx.fillStyle = label.active ? '#e3a83b' : 'rgba(241, 228, 200, 0.78)';
+      ctx.fillText(label.text, b.x, b.y);
+    });
+    ctx.textBaseline = 'alphabetic';
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+    return font;
+  }
+
 
   // ---------- Наведение: какая планета под точкой (x, y)? ----------
   // Планета — круг. Точка внутри круга, если расстояние от неё до центра
@@ -281,6 +390,7 @@ const Hero = (function () {
     drawOrbits();
     drawAsteroids();
 
+    const labels = [];
     for (const it of items) {
       if (it.sun) {
         drawSun();
@@ -290,8 +400,14 @@ const Hero = (function () {
       const k = it.k * grow[it.i];
       const size = (sprite.image.width / dpr / 1.15) * k;
       ctx.drawImage(sprite.image, it.x - size / 2, it.y - size / 2, size, size);
-      drawLabel(it.p.name, it.x, it.y, sprite.r * k, hovered === it.i);
+      labels.push({ id: it.i, text: it.p.name.toUpperCase(), x: it.x, y: it.y, r: sprite.r * k, active: hovered === it.i });
     }
+    // Подписи — отдельным проходом, после всех планет и Солнца, чтобы их ничего
+    // не перекрывало. Подпись планеты под курсором ставим первой — ей лучшее место
+    labels.sort((a, b) => b.active - a.active);
+    // У Сатурна кольца шире планеты — для подписей считаем его кругом побольше
+    const obstacles = targets.map((t) => (t.id !== 'sun' && PLANETS[t.id].ring ? { ...t, r: t.r * 1.7 } : t));
+    drawLabels(labels, obstacles);
   }
 
   // ---------- Мышь и пальцы ----------
@@ -330,7 +446,9 @@ const Hero = (function () {
     if (!running) return;
     const dt = Math.min(0.05, (now - lastFrame) / 1000 || 0);
     lastFrame = now;
-    time += dt;
+    // Пока курсор над планетой или Солнцем, система стоит на паузе —
+    // время просто не идёт, и все планеты замирают на месте
+    if (hovered === null) time += dt;
     draw();
     requestAnimationFrame(frame);
   }

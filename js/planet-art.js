@@ -216,7 +216,9 @@ function createPlanetSprite(p, r, pixelRatio = 1) {
 }
 
 // Солнце: светлая сердцевина и рваный «мазками» край
-function createSunSprite(r) {
+// options.soft — мягкий край: без штрихов наружу (для огромного Солнца на телефоне)
+function createSunSprite(r, options = {}) {
+  const soft = Boolean(options.soft);
   const size = Math.ceil(r * 3.2);
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -232,6 +234,17 @@ function createSunSprite(r) {
   ctx.fillStyle = glow;
   ctx.fillRect(-size / 2, -size / 2, size, size);
 
+  if (soft) {
+    // Мягкая оранжевая кайма вместо острых штрихов
+    const rim = ctx.createRadialGradient(0, 0, r * 0.9, 0, 0, r * 1.06);
+    rim.addColorStop(0, 'rgba(217, 87, 62, 0.9)');
+    rim.addColorStop(1, 'rgba(217, 87, 62, 0)');
+    ctx.fillStyle = rim;
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 1.06, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   // Рваный край из мазков «кистью»: дуги вдоль края с круглыми концами
   const colors = ['#c2412d', '#d9573e', '#e8862a'];
   ctx.lineCap = 'round';
@@ -245,8 +258,9 @@ function createSunSprite(r) {
     ctx.stroke();
   }
 
-  // Короткие штрихи наружу — чтобы край был неровным, но не «мохнатым»
-  for (let i = 0; i < 160; i++) {
+  // Короткие штрихи наружу — чтобы край был неровным, но не «мохнатым».
+  // В мягком режиме их нет: на огромном Солнце они и выглядят «колючками»
+  for (let i = 0; i < (soft ? 0 : 160); i++) {
     const a = rand() * Math.PI * 2;
     const d = r * (0.94 + rand() * 0.04);
     const len = r * (0.02 + rand() * 0.05);
@@ -260,7 +274,7 @@ function createSunSprite(r) {
   }
 
   // Брызги краски у самого края
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < (soft ? 20 : 50); i++) {
     const a = rand() * Math.PI * 2;
     const d = r * (1.02 + rand() * 0.08);
     ctx.fillStyle = colors[Math.floor(rand() * colors.length)];

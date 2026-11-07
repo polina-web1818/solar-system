@@ -196,19 +196,25 @@ body::after {
 }
 
 .planet-section__art {
+  /* Размер цифры-нумерации. Сверху оставляем под неё место,
+     поэтому планета сдвигается ниже (и чуть правее) и не закрывает цифру */
+  --num-size: clamp(64px, 8vw, 120px);
   position: relative;
+  align-self: stretch; /* на всю высоту экрана — есть куда опустить планету */
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 360px;
+  padding: calc(var(--num-size) * 1.1) 0 0 6%;
 }
 
 /* Наклонная орбита за планетой */
 .planet-section__art::before {
   content: "";
   position: absolute;
-  left: 50%;
-  top: 50%;
+  /* Центр орбиты совпадает с центром сдвинутой планеты */
+  left: 53%;
+  top: calc(50% + var(--num-size) * 0.55);
   width: 100%;
   aspect-ratio: 2.6 / 1;
   border: 1px solid rgba(241, 228, 200, 0.22);
@@ -224,16 +230,17 @@ body::after {
   display: block;
 }
 
-/* Огромный полупрозрачный номер за планетой */
+/* Крупный контурный номер над планетой (00, 01 …) */
 .planet-section__number {
   position: absolute;
   left: 0;
   top: 0;
+  z-index: 2;
   font-family: var(--font-display);
-  font-size: clamp(90px, 14vw, 200px);
+  font-size: var(--num-size);
   line-height: 1;
-  color: var(--cream);
-  opacity: 0.05;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(241, 228, 200, 0.45); /* только обводка букв, без заливки */
   pointer-events: none;
 }
 
@@ -338,7 +345,9 @@ body::after {
   background: var(--navy);
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  overflow: hidden;
+  /* clip, а не hidden: hidden делает блок отдельной областью прокрутки,
+     и «прилипание» (sticky) результата внутри перестаёт работать */
+  overflow: clip;
 }
 
 /* Треугольная полутоновая сетка в углу, как на главном экране */
@@ -392,11 +401,14 @@ body::after {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(20px, 3vw, 40px);
-  align-items: start;
+  align-items: stretch; /* обе карточки тянутся до высоты самой высокой */
 }
 
-/* Карточка: тёмная, с тонкой рамкой и сдвинутой «типографской» тенью */
+/* Карточка: тёмная, с тонкой рамкой и сдвинутой «типографской» тенью.
+   Колонка flex — чтобы пояснение внизу прижималось к нижнему краю */
 .calc {
+  display: flex;
+  flex-direction: column;
   padding: 20px clamp(18px, 2vw, 28px) 16px;
   background: var(--navy-deep);
   border: 1px solid rgba(241, 228, 200, 0.25);
@@ -547,7 +559,8 @@ body::after {
 }
 
 .calc__note {
-  margin-top: 12px;
+  margin-top: auto;   /* прижать к низу карточки: у обеих карточек низ на одном уровне */
+  padding-top: 12px;
   font-size: 13px;
   line-height: 1.5;
   color: var(--cream-dim);
@@ -816,6 +829,31 @@ body::after {
   outline: none;
 }
 
+/* Точка «Ты и космос»: отделена отступом и тонкой линией, форма — ромб, а не круг */
+.dots__link--extra {
+  margin-top: 14px;
+}
+
+.dots__link--extra::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  width: 10px;
+  height: 1px;
+  background: rgba(241, 228, 200, 0.4);
+  transform: translateX(-50%);
+}
+
+.dots__link--extra::before {
+  border-radius: 1px;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.dots__link--extra.is-active::before {
+  transform: translate(-50%, -50%) rotate(45deg) scale(1.5);
+}
+
 /* ===== Мобильная версия ===== */
 @media (max-width: 700px) {
   .hero__text {
@@ -837,13 +875,13 @@ body::after {
   .planet-section {
     grid-template-columns: minmax(0, 1fr);
     align-content: center;
-    padding: 32px 36px 32px 24px; /* справа место под точки */
+    padding: 32px 44px 32px 24px; /* справа место под точки */
     gap: 16px;
   }
 
   /* Ты и космос: карточки друг под другом */
   .you {
-    padding: 40px 36px 40px 24px;
+    padding: 40px 44px 40px 24px;
     gap: 24px;
   }
 
@@ -878,13 +916,72 @@ body::after {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* На телефоне результат — над кнопками: нажал чипс и сразу видишь ответ */
+  /* Обычный блок вместо сетки: sticky работает в пределах родителя,
+     а в сетке родителем была бы только своя строка, и «прилипать» было бы некуда */
+  .travel {
+    display: block;
+  }
+
+  /* Результат стоит под кнопками, но «прилипает» к низу экрана (sticky),
+     пока карточка видна: нажал кнопку — ответ сразу перед глазами */
   .travel__result {
-    order: -1;
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    /* по бокам растягиваем до краёв карточки; снизу без отрицательного отступа —
+       иначе «прилипший» блок уезжает за нижний край экрана */
+    margin: 20px -18px 0;
+    padding: 10px 18px 10px;
+    background: var(--navy);
+    border-top: 1px solid rgba(241, 228, 200, 0.25);
+    box-shadow: 0 -14px 24px rgba(15, 27, 45, 0.7);
+  }
+
+  .travel__time {
+    font-size: 22px;
+  }
+
+  .travel__details {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .travel__lives {
+    min-height: 0;
+    margin-top: 4px;
+    font-size: 13px;
   }
 
   .flight {
-    margin-top: 16px;
+    margin-top: 8px;
+  }
+
+  /* Компактная панель: подписи «Земля — планета» под линией на телефоне не нужны,
+     цвет кружков и так понятен, а место внизу экрана дорого */
+  .flight__labels {
+    display: none;
+  }
+
+  .flight__planet {
+    width: 16px;
+    height: 16px;
+  }
+
+  .flight__planet.is-sun {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Транспорт — в 2 колонки, название слева, скорость справа */
+  #travel-transports {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #travel-transports .chip {
+    justify-content: space-between;
+    padding: 7px 10px;
   }
 
   .chip {
@@ -894,18 +991,27 @@ body::after {
 
   /* Точки меньше и ближе к краю; названия не показываем — на телефоне нет наведения */
   .dots {
-    right: 6px;
+    right: 4px;
     gap: 2px;
   }
 
   .dots__link {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
   .dots__link::before {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
+  }
+
+  .dots__link--extra {
+    margin-top: 10px;
+  }
+
+  .dots__link--extra::after {
+    top: -6px;
+    width: 8px;
   }
 
   .dots__label {
@@ -913,7 +1019,13 @@ body::after {
   }
 
   .planet-section__art {
+    --num-size: 44px;
     min-height: 200px;
+    padding-left: 0;
+  }
+
+  .planet-section__art::before {
+    left: 50%;
   }
 
   .planet-section__badge {

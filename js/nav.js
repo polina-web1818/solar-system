@@ -4,7 +4,10 @@
 // сообщает, какой раздел сейчас пересекает середину экрана.
 
 const Nav = (function () {
-  const bodies = [SUN, ...PLANETS, { id: 'you', name: 'Ты и космос', base: '#e3a83b' }];
+  // extra — особая точка: не планета, а блок «Ты и космос» (другая форма, отделена линией)
+  const bodies = [SUN, ...PLANETS, { id: 'you', name: 'Ты и космос', base: '#e3a83b', extra: true }];
+  // У блока «Ты и космос» два экрана (калькуляторы и «Сколько лететь») — точка на оба одна
+  const SAME_DOT = { travel: 'you' };
   let nav = null;
   let links = {}; // id раздела → ссылка-точка
 
@@ -15,7 +18,7 @@ const Nav = (function () {
 
     bodies.forEach((body) => {
       const link = document.createElement('a');
-      link.className = 'dots__link';
+      link.className = body.extra ? 'dots__link dots__link--extra' : 'dots__link';
       link.href = `#${body.id}`; // клик = переход к разделу (плавность даёт CSS)
       link.style.setProperty('--accent', body.base);
       link.innerHTML = `<span class="dots__label">${body.name}</span>`;
@@ -43,7 +46,7 @@ const Nav = (function () {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
-        const id = entry.target.id;
+        const id = SAME_DOT[entry.target.id] || entry.target.id;
         // На главном экране точки прячем, в разделах — показываем
         nav.classList.toggle('is-visible', id !== 'hero');
         if (id !== 'hero') setActive(id);
@@ -52,6 +55,7 @@ const Nav = (function () {
 
     observer.observe(document.getElementById('hero'));
     bodies.forEach((body) => observer.observe(document.getElementById(body.id)));
+    Object.keys(SAME_DOT).forEach((id) => observer.observe(document.getElementById(id)));
   }
 
   function init() {
