@@ -742,6 +742,54 @@ body::after {
   color: var(--cream-dim);
 }
 
+/* ===== Кнопка «Наверх» ===== */
+/* Кремовый кружок со стрелкой и красной сдвинутой тенью, как у кнопок-чипсов.
+   Стоит под точками навигации, в той же колонке справа */
+.to-top {
+  position: fixed;
+  right: 12px;
+  bottom: 20px;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--navy-deep);
+  box-shadow: 3px 3px 0 var(--red);
+  /* Скрыта на главном экране: JS добавляет класс is-visible в разделах */
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16px);
+  transition: opacity 0.4s, transform 0.4s, box-shadow 0.2s;
+}
+
+.to-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.to-top:hover {
+  box-shadow: 4px 4px 0 var(--red), 0 0 0 3px rgba(227, 168, 59, 0.4);
+}
+
+.to-top:focus-visible {
+  outline: 3px solid var(--mustard);
+  outline-offset: 3px;
+}
+
+.to-top svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* ===== Навигация точками ===== */
 .dots {
   position: fixed;
@@ -882,13 +930,13 @@ body::after {
   .planet-section {
     grid-template-columns: minmax(0, 1fr);
     align-content: center;
-    padding: 32px 44px 32px 24px; /* справа место под точки */
+    padding: 32px 48px 32px 24px; /* справа колонка под точки и кнопку «Наверх» */
     gap: 16px;
   }
 
   /* Ты и космос: карточки друг под другом */
   .you {
-    padding: 40px 44px 40px 24px;
+    padding: 40px 48px 40px 24px;
     gap: 24px;
   }
 
@@ -991,34 +1039,45 @@ body::after {
     padding: 7px 10px;
   }
 
+  /* Минимум 44 px в высоту — удобно попадать пальцем */
   .chip {
-    padding: 6px 10px;
+    min-height: 44px;
+    padding: 6px 12px;
     font-size: 13px;
   }
 
-  /* Точки меньше и ближе к краю; названия не показываем — на телефоне нет наведения */
+  /* Точки визуально маленькие, но зона нажатия у каждой — 44×44 px
+     (минимум, по которому удобно попасть пальцем). Колонка точек — у правого края,
+     текст отступает от него на 48 px, поэтому точки на текст не налезают.
+     Названия не показываем — на телефоне нет наведения */
   .dots {
     right: 4px;
-    gap: 2px;
+    gap: 0;
   }
 
   .dots__link {
-    width: 16px;
-    height: 16px;
+    width: 44px;
+    height: 44px;
   }
 
   .dots__link::before {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
   }
 
   .dots__link--extra {
-    margin-top: 10px;
+    margin-top: 8px;
   }
 
   .dots__link--extra::after {
-    top: -6px;
+    top: -4px;
     width: 8px;
+  }
+
+  /* Кнопка «Наверх» — в той же колонке, что и точки, под ними */
+  .to-top {
+    right: 4px;   /* не у самого края — иначе красная тень обрезается */
+    bottom: 16px;
   }
 
   .dots__label {

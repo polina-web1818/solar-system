@@ -10,6 +10,7 @@ const Nav = (function () {
   const SAME_DOT = { travel: 'you' };
   let nav = null;
   let links = {}; // id раздела → ссылка-точка
+  const toTop = document.getElementById('to-top');
 
   function createNav() {
     nav = document.createElement('nav');
@@ -47,8 +48,9 @@ const Nav = (function () {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
         const id = SAME_DOT[entry.target.id] || entry.target.id;
-        // На главном экране точки прячем, в разделах — показываем
+        // На главном экране точки и кнопку «Наверх» прячем, в разделах — показываем
         nav.classList.toggle('is-visible', id !== 'hero');
+        toTop.classList.toggle('is-visible', id !== 'hero');
         if (id !== 'hero') setActive(id);
       });
     }, { rootMargin: '-49.5% 0px -49.5% 0px' });
